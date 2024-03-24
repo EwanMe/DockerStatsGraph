@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/docker/docker v24.0.3+incompatible
-	github.com/guptarohit/asciigraph v0.5.6
+	github.com/guptarohit/asciigraph v0.6.0
 )
 
 require (

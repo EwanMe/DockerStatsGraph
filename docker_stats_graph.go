@@ -55,10 +55,6 @@ func getContainerStats(containerName string) types.ContainerStats {
 		}
 	}
 
-	if cont_id == nil {
-		panic("Help")
-	}
-
 	resp, err := cli.ContainerStats(ctx, cont_id.String(), true)
 	if err != nil {
 		panic(err)
@@ -78,25 +74,28 @@ func insertBuffer(value float64, data []float64) []float64 {
 }
 
 func getGraphOpts(contName string) []asciigraph.Option {
-    return []asciigraph.Option{
-        asciigraph.Height(15),
-        asciigraph.Width(75),
+	return []asciigraph.Option{
+		asciigraph.Height(15),
+		asciigraph.Width(75),
 		asciigraph.LowerBound(0),
-        asciigraph.SeriesColors(
+		asciigraph.SeriesColors(
 			asciigraph.LightCoral,
 			asciigraph.Turquoise,
 		),
-        asciigraph.Caption(
+		asciigraph.Caption(
 			fmt.Sprintf(
 				"Memory usage for container: %s",
 				contName,
 			),
 		),
-    }
+		asciigraph.SeriesLegends(
+			"Memory limit", "Current usage",
+		),
+	}
 }
 
 func byteToGiB(val float64) float64 {
-    return val / math.Pow(1024, 3)
+	return val / math.Pow(1024, 3)
 }
 
 func main() {
@@ -113,24 +112,24 @@ func main() {
 
 	usageSeries := make([]float64, 0)
 	limitSeries := make([]float64, 0)
-	
+
 	for dec.More() {
 		err := dec.Decode(&stats)
-	
+
 		if err != nil {
 			panic(err)
 		}
 		usageGiB := byteToGiB(float64(stats.MemStats.Usage))
-        limitGiB := byteToGiB(float64(stats.MemStats.Limit))
+		limitGiB := byteToGiB(float64(stats.MemStats.Limit))
 		usageSeries = insertBuffer(usageGiB, usageSeries)
 		limitSeries = insertBuffer(limitGiB, limitSeries)
 		data := [][]float64{limitSeries, usageSeries}
 
-        asciigraph.Clear()
+		asciigraph.Clear()
 		graph := asciigraph.PlotMany(
-            data,
-            getGraphOpts(containerName)...,
-        ) 
+			data,
+			getGraphOpts(containerName)...,
+		)
 		fmt.Println(graph)
-    }
+	}
 }
